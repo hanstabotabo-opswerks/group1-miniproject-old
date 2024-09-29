@@ -1,18 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mini-proj-app
+  name: mini-proj-app-stable
   labels:
     app: mini-proj-app
+    version: stable
 spec:
   replicas: 3
   selector:
     matchLabels:
       app: mini-proj-app
+      version: stable
   template:
     metadata:
       labels:
         app: mini-proj-app
+        version: stable
     spec:
       initContainers:
       - name: init-chmod
@@ -23,8 +26,11 @@ spec:
           mountPath: /app
       containers:
       - name: shift-sched-container
-        image: localhost:5000/mini-proj:latest
+        image: localhost:5000/mini-proj:stable
         command: ["/bin/sh", "-c", "while true; do sleep 30; done;"]
+        env:
+        - name: VERSION
+          value: "stable"
         volumeMounts:
         - name: mini-proj-storage
           mountPath: /app
