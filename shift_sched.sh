@@ -1,6 +1,13 @@
 #!/bin/bash
 
 list="/app/schedule.txt"
+version="${VERSION:-stable}"
+
+if [ "$version" == "canary" ]; then
+    echo "Running Canary Version of Shift Scheduler"
+else
+    echo "Running Stable Version of Shift Scheduler"
+fi
 
 echo "Welcome to Shift Scheduler"
 
