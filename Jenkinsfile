@@ -8,7 +8,6 @@ pipeline {
                 script {
                     sh '''
                     echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                    docker build . -t mini-proj:latest
                     if [ "$(docker ps -q -f name=registry)" ]; then
                         docker stop registry
                         docker rm registry
@@ -16,8 +15,10 @@ pipeline {
                     else
                         docker run -d -p 5000:5000 --name registry registry:latest
                     fi
-                    docker tag mini-proj:latest localhost:5000/mini-proj:latest
-                    docker push localhost:5000/mini-proj:latest
+                    docker build . -t localhost:5000/mini-proj:stable --build-arg VERSION=stable
+                    docker push localhost:5000/mini-proj:stable
+                    docker build . -t localhost:5000/mini-proj:canary --build-arg VERSION=canary
+                    docker push localhost:5000/mini-proj:canary
                     '''
                 }
                 }
@@ -28,7 +29,8 @@ pipeline {
                     withKubeConfig(caCertificate: "${KUBE_CERT}", clusterName: 'kubernetes', contextName: 'kubernetes-admin@kubernetes', credentialsId: 'my-kube-config-credentials', namespace: 'default', restrictKubeConfigAccess: false, serverUrl: 'https://jump-host:6443') {
                     sh 'kubectl apply -f pv-definition.yaml'
                     sh 'kubectl apply -f pvc-definition.yaml'
-                    sh 'kubectl apply -f deployment.yaml'
+                    sh 'kubectl apply -f deployment-stable.yaml'
+                    sh 'kubectl apply -f deployment-canary.yaml'
                     }
             }
         }
