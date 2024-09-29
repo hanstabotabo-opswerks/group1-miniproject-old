@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mini-proj-app-canary
+  labels:
+    app: mini-proj-app
+    version: canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mini-proj-app
+      version: canary
+  template:
+    metadata:
+      labels:
+        app: mini-proj-app
+        version: canary
+    spec:
+      initContainers:
+      - name: init-chmod
+        image: busybox
+        command: ["sh", "-c", "chmod +x /app/shift_sched.sh"]
+        volumeMounts:
+        - name: mini-proj-storage
+          mountPath: /app
+      containers:
+      - name: shift-sched-container
+        image: localhost:5000/mini-proj:canary
+        command: ["/bin/sh", "-c", "while true; do sleep 30; done;"]
+        env:
+        - name: VERSION
+          value: "canary"
+        volumeMounts:
+        - name: mini-proj-storage
+          mountPath: /app
+      volumes:
+      - name: mini-proj-storage
+        persistentVolumeClaim:
+          claimName: mini-proj-pvc
